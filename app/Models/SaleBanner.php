@@ -9,5 +9,5 @@ class SaleBanner extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'description', 'image_url', 'is_active', 'bg_color'];
+    protected $fillable = ['title', 'description', 'image_url', 'is_active','is_background', 'bg_color'];
 }

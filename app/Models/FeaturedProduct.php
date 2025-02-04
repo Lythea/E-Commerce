@@ -11,10 +11,12 @@ class FeaturedProduct extends Model
 
     protected $fillable = [
         'name',
+        'category',
         'description',
         'percent',
         'image_url',
         'current_price',
         'discounted_price',
+        'expiration_date'
     ];
 }

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('image_url')->nullable();
             $table->string('bg_color')->nullable();
             $table->boolean('is_active')->nullable();
+                  $table->boolean('is_background')->nullable();
             $table->timestamps();
         });
     }
