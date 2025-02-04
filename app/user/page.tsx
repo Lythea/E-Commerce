@@ -85,7 +85,7 @@ const UserHome = () => {
 useEffect(() => {
   const fetchFeaturedProducts = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/featuredProduct", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/featuredProduct`, {
         method: "GET", // Explicitly setting the method to GET
       });
       if (!response.ok) {

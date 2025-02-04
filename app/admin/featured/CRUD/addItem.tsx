@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-// Define the type for the product data (excluding 'id')
 interface AddItemProduct {
   name: string;
   category: string;
@@ -9,11 +8,19 @@ interface AddItemProduct {
   image: File | null;
   currentPrice: string;
   discountedPrice: string;
-    createdAt: string;
-  updatedAt: string;
+    expirationDate: string;
 }
 
-// Define the modal props types
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  stock: string;
+  category: string;
+  image: string;
+}
+
 interface AddItemModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,9 +36,40 @@ const AddItemModal = ({ isOpen, onClose, onAdd }: AddItemModalProps) => {
     image: null,
     currentPrice: "",
     discountedPrice: "",
-      createdAt: "",
-  updatedAt: "",
+    expirationDate:"",
   });
+
+  const [products, setProducts] = useState<Product[]>([]);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`);
+      const products = await response.json();
+      setProducts(products); // Set products in state
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  // Fetch products on component mount
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedProduct = products.find(product => product.name === e.target.value);
+
+    if (selectedProduct) {
+      setInputData((prevData) => ({
+        ...prevData,
+        name: selectedProduct.name,
+        category: selectedProduct.category,
+        description: selectedProduct.description,
+        currentPrice: selectedProduct.price, // Set the current price based on selected product
+        discountedPrice: selectedProduct.price, // Initialize discountedPrice
+      }));
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -39,6 +77,19 @@ const AddItemModal = ({ isOpen, onClose, onAdd }: AddItemModalProps) => {
       ...prevData,
       [name]: value,
     }));
+  };
+
+  const handlePercentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const percent = parseFloat(e.target.value);
+    setInputData((prevData) => {
+      const currentPrice = parseFloat(prevData.currentPrice);
+      const discountedPrice = currentPrice - (currentPrice * (percent / 100));
+      return {
+        ...prevData,
+        percent: e.target.value,
+        discountedPrice: discountedPrice.toFixed(2), // Set the discounted price
+      };
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,37 +101,42 @@ const AddItemModal = ({ isOpen, onClose, onAdd }: AddItemModalProps) => {
       }));
     }
   };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const formData = new FormData();
+  formData.append("name", inputData.name);
+  formData.append("category", inputData.category);
+  formData.append("description", inputData.description);
+  formData.append("percent", inputData.percent);
+  formData.append("image", inputData.image as Blob); // Cast to Blob for FormData
+  formData.append("current_price", inputData.currentPrice);
+  formData.append("discounted_price", inputData.discountedPrice);
+ formData.append("expiration_date", inputData.expirationDate); // Append expiration date
 
-    const formData = new FormData();
-    formData.append("name", inputData.name);
-    formData.append("category", inputData.category);
-    formData.append("description", inputData.description);
-    formData.append("percent", inputData.percent);
-    formData.append("image", inputData.image as Blob); // Cast to Blob for FormData
-    formData.append("current_price", inputData.currentPrice);
-    formData.append("discounted_price", inputData.discountedPrice);
+  // Log the formData content before sending it
+  for (let [key, value] of formData.entries()) {
+    console.log(`${key}:`, value);
+  }
 
-    try {
-      const response = await fetch("http://localhost:8000/api/featuredProduct", {
-        method: "POST",
-        body: formData,
-      });
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/featuredProduct`, {
+      method: "POST",
+      body: formData,
+    });
 
-      const data = await response.json();
-      if (response.ok) {
-        console.log("Product added:", data);
-        onAdd(data); // Add the product to the parent state
-        onClose();
-      } else {
-        console.error("Error adding product:", data);
-      }
-    } catch (error) {
-      console.error("Error:", error);
+    const data = await response.json();
+    if (response.ok) {
+      console.log("Product added:", data);
+      onAdd(data); // Add the product to the parent state
+      onClose();
+    } else {
+      console.error("Error adding product:", data);
     }
-  };
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
 
   if (!isOpen) return null;
 
@@ -90,20 +146,26 @@ const AddItemModal = ({ isOpen, onClose, onAdd }: AddItemModalProps) => {
         <h3 className="text-xl font-semibold mb-4">Add New Product</h3>
 
         <form onSubmit={handleSubmit}>
-          {/* Name Field */}
+          {/* Name Field (Dropdown) */}
           <div className="mb-4">
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Name
             </label>
-            <input
-              type="text"
+            <select
               id="name"
               name="name"
               value={inputData.name}
-              onChange={handleInputChange}
+              onChange={handleSelectChange}
               className="mt-1 px-4 py-2 border border-gray-300 rounded-md w-full"
               required
-            />
+            >
+              <option value="" disabled>Select a product</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.name}>
+                  {product.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Description Field */}
@@ -135,6 +197,7 @@ const AddItemModal = ({ isOpen, onClose, onAdd }: AddItemModalProps) => {
               onChange={handleInputChange}
               className="mt-1 px-4 py-2 border border-gray-300 rounded-md w-full"
               required
+              readOnly
             />
           </div>
 
@@ -144,11 +207,11 @@ const AddItemModal = ({ isOpen, onClose, onAdd }: AddItemModalProps) => {
               Percent
             </label>
             <input
-              type="text"
+              type="number"
               id="percent"
               name="percent"
               value={inputData.percent}
-              onChange={handleInputChange}
+              onChange={handlePercentChange}
               className="mt-1 px-4 py-2 border border-gray-300 rounded-md w-full"
               required
             />
@@ -182,6 +245,7 @@ const AddItemModal = ({ isOpen, onClose, onAdd }: AddItemModalProps) => {
               onChange={handleInputChange}
               className="mt-1 px-4 py-2 border border-gray-300 rounded-md w-full"
               required
+              readOnly
             />
           </div>
 
@@ -198,9 +262,23 @@ const AddItemModal = ({ isOpen, onClose, onAdd }: AddItemModalProps) => {
               onChange={handleInputChange}
               className="mt-1 px-4 py-2 border border-gray-300 rounded-md w-full"
               required
+              disabled
             />
           </div>
-
+ <div className="mb-4">
+            <label htmlFor="expirationDate" className="block text-sm font-medium text-gray-700">
+              Expiration Date
+            </label>
+            <input
+              type="date"
+              id="expirationDate"
+              name="expirationDate"
+              value={inputData.expirationDate}
+              onChange={handleInputChange}
+              className="mt-1 px-4 py-2 border border-gray-300 rounded-md w-full"
+              required
+            />
+          </div>
           {/* Buttons */}
           <div className="flex justify-end space-x-2">
             <button
