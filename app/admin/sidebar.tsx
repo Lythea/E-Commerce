@@ -32,7 +32,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <li>
               <Link
                 href="/admin"
-                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/dashboard" ? "bg-blue-600" : ""}`}
+                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/dashboard" ? "bg-blue-800" : ""}`}
               >
                 Dashboard
               </Link>
@@ -40,7 +40,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <li>
               <Link
                 href="/admin/product"
-                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/product" ? "bg-blue-600" : ""}`}
+                className={`block p-2 rounded-md  hover:bg-blue-600 ${pathname === "/admin/product" ? "bg-blue-800" : ""}`}
               >
                 Products
               </Link>
@@ -48,7 +48,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <li>
               <Link
                 href="/admin/featured"
-                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/featured" ? "bg-gray-700" : ""}`}
+                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/featured" ? "bg-blue-800" : ""}`}
               >
                 Featured
               </Link>
@@ -56,7 +56,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <li>
               <Link
                 href="/admin/banner"
-                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/banner" ? "bg-gray-700" : ""}`}
+                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/banner" ? "bg-blue-800" : ""}`}
               >
                 Sale Banners
               </Link>
@@ -64,7 +64,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <li>
               <Link
                 href="/admin/category"
-                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/category" ? "bg-gray-700" : ""}`}
+                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/category" ? "bg-blue-800" : ""}`}
               >
                 Category
               </Link>
@@ -72,7 +72,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <li>
               <Link
                 href="/admin/brand"
-                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/brand" ? "bg-gray-700" : ""}`}
+                className={`block p-2 rounded-md hover:bg-blue-600 ${pathname === "/admin/brand" ? "bg-blue-800" : ""}`}
               >
                 Brand
               </Link>

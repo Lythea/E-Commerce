@@ -7,83 +7,56 @@ import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import { motion } from "framer-motion";
 
-import { TagIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon,TagIcon,ChevronLeftIcon,ShoppingBagIcon } from '@heroicons/react/24/outline';
 
-import Header from "./header/page";
-import Navbar from "./navbar/page"
+import Header from "@/component/header/page";
+import Navbar from "@/component/navbar/page";
+
+
 const UserHome = () => {
-  const staticData = {
-    banners: [
-      {
-        id: 1,
-        title: "50% Off on Leather Bags",
-        description: "Limited time offer. Don't miss out on this exclusive deal!",
-        image: "/images/Item1.jpg",
-      },
-      {
-        id: 2,
-        title: "New Arrivals - Fall Collection",
-        description: "Discover the latest trends in fashion. Fresh styles are here!",
-        image: "/images/Item8.jpg",
-      },
-      {
-        id: 3,
-        title: "Special Offer: Buy One, Get One Free",
-        description: "Shop now and enjoy this exclusive deal on selected items.",
-        image: "/images/Item7.jpg",
-      },
-      {
-        id: 4,
-        title: "Up to 70% Off Winter Sale",
-        description: "Clearance sale! Huge discounts on selected winter fashion.",
-        image: "/images/Item4.jpg",
-      },
-      {
-        id: 5,
-        title: "Exclusive Member Offer",
-        description: "Sign up for a special 20% discount on your first order!",
-        image: "/images/Item5.jpg",
-      },
-      {
-        id: 6,
-        title: "New Season, New Style!",
-        description: "Fresh styles for the new season, available now.",
-        image: "/images/Item6.jpg",
-      },
-    ],
-    welcomeMessage: {
-      title: "Welcome Back, Fashion Lover!",
-      description: "Explore our curated collection and enjoy exclusive deals tailored for you.",
-      buttonText: "Start Shopping Now",
-      buttonLink: "/shop",
-    },
-    featuredProducts: [
-      { id: 1, title: "Classic Leather Bag", description: "Stylish and durable.", image: "/images/Item1.jpg" },
-      { id: 2, title: "Fall Jacket", description: "Perfect for the cold season.", image: "/images/Item2.jpg" },
-      // More products
-    ],
-    testimonials: [
-      { id: 1, name: "Alice Johnson", message: "I love the quality and variety of the products!" },
-      { id: 2, name: "Mark Smith", message: "Fantastic customer service, highly recommend." },
-      // More testimonials
-    ],
-    categories: [
-      { id: 1, name: "Leather Bags", image: "/images/category-bags.jpg" },
-      { id: 2, name: "Winter Collection", image: "/images/category-winter.jpg" },
-      // More categories
-    ],
-  };
+ 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<string>("");
+ const [categories, setCategories] = useState<{ id: number; name: string; image: string }[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [bgColor, setBgColor] = useState<string>("bg-neutral-200"); // default background color
+
   const openModal = (content: string) => {
     setModalContent(content);
     setIsModalOpen(true);
   };
-useEffect(() => {
-  const fetchFeaturedProducts = async () => {
+
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalContent("");
+  };
+  const handleSlideChange = (swiper: any) => {
+    const activeIndex = swiper.activeIndex;
+
+    // Change background color based on the active slide index
+    if (activeIndex === 0) {
+      setBgColor("bg-neutral-200"); // Background for Featured Products
+    } else if (activeIndex === 1) {
+      setBgColor("bg-blue-500"); // Background for Category Section
+    } else if (activeIndex === 2) {
+      setBgColor("bg-green-500"); // Background for New Arrival Section
+    }
+  };
+
+    const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories`);
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+   const fetchFeaturedProducts = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/featuredProduct`, {
         method: "GET", // Explicitly setting the method to GET
@@ -101,198 +74,420 @@ useEffect(() => {
     }
   };
 
-  fetchFeaturedProducts();
-}, []);
+  // Call fetchCategories on mount
+  useEffect(() => {
+     fetchFeaturedProducts();
+    fetchCategories();
+  }, []);
 
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setModalContent("");
-  };
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Header />
-      <Navbar
-      openModal={openModal}/>
-  <div className="w-1/2 mx-auto">
-<div className="w-full max-w-5xl mx-auto mt-12">
+    <>
+<div className={`min-h-screen ${bgColor}`}>
+  <Header />
+  <Navbar openModal={openModal}/>
 
-  {/* Loading state */}
-  {isLoading ? (
-    <div className="text-center">Loading featured products...</div>
-  ) : (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-      {featuredProducts.map((product: any) => (
-        <div
-          key={product.id}
-          className="border rounded-lg p-8 shadow-lg bg-white transform transition-all hover:scale-105 hover:shadow-2xl"
-        >
-          {/* Image container */}
-          <div className="relative mb-6">
-            <Image
-              src={`http://localhost:8000/${product.image_url}`}  // Adjust URL for the image source
-              alt={product.name}
-              width={450}  // Larger image size
-              height={450}
-              objectFit="cover"
-              className="rounded-lg"
-            />
-          </div>
+   <Swiper
+        className="h-[730px]"
+        spaceBetween={0} // No space between slides
+        slidesPerView={1} // Only one slide at a time
+        loop={true} // Loop the slides
+        pagination={{ clickable: true }} // Pagination dots
+        modules={[Autoplay, Pagination]} // Enable autoplay and pagination modules
+      >
+        {/* Featured Products Section with specific background */}
+        <SwiperSlide className="bg-neutral-200"> {/* Background for Featured Products Section */}
+          <FeaturedProductsSection data={featuredProducts} />
+        </SwiperSlide>
 
-          {/* Product Name */}
-          <h3 className="text-2xl font-semibold text-gray-800 hover:text-blue-600 transition-colors">{product.name}</h3>
-          <p className="text-sm text-gray-500 mt-2">{product.description}</p>
+        {/* Category Section with specific background */}
+        <SwiperSlide className="bg-neutral-200"> {/* Background for Category Section */}
+          <BestSellerSection data={categories} />
+        </SwiperSlide>
 
-          {/* Price container */}
-          <div className="mt-6 flex items-center">
-            <span className="text-2xl font-semibold text-red-600">{product.discounted_price}</span>
-            <span className="text-lg text-gray-500 ml-4 line-through">{product.current_price}</span>
-          </div>
+        {/* New Arrival Section with specific background */}
+        <SwiperSlide className="bg-neutral-200"> {/* Background for New Arrival Section */}
+          <NewArrival data={featuredProducts} />
+        </SwiperSlide>
+      </Swiper>
 
-          {/* View Details Button */}
-          <Link
-            href={`/product/${product.id}`}
-            className="mt-6 inline-block bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition-all"
-          >
-            View Details
-          </Link>
-        </div>
-      ))}
+  {/* Custom Tailwind styling for pagination dots */}
+  <div className="swiper-pagination absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10"></div>
+</div>
+
+
+</>)
+};
+const NewArrival = ({ data }: { data: any[] }) => {
+return(<>
+  <div className="flex items-center justify-between mb-8 max-w-[60%] mx-auto">
+    <div className="flex items-center space-x-2">
+      <ShoppingBagIcon className="w-6 h-6 text-primary" />
+      <h1 className="text-xl font-bold text-gray-800">New Arrival</h1>
     </div>
-  )}
-</div>
+  </div>
 
+  <h2 className="text-2xl font-semibold text-gray-900 mb-8 max-w-[60%] mx-auto -mt-5">
+    Browse New Arrivals
+  </h2>
 
-      
-      {/* Modal for Popup Content */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white p-6 rounded-md max-w-lg w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-2xl font-semibold mb-4">{modalContent}</h3>
-            <p>Here goes the content for {modalContent}...</p>
-            <button
-              onClick={closeModal}
-              className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-md"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Swiper Carousel */}
-     <div className="w-full max-w-5xl mx-auto mt-12">
-  {/* Special Offer Section Title */}
-  <h1 className="text-5xl font-extrabold text-center mb-6 text-blue-600">
-
-  </h1>
-
-  {/* Swiper Carousel */}
-  <Swiper
-    modules={[Navigation, Pagination, Autoplay]}
-    spaceBetween={30}
-    slidesPerView={1}
-    autoplay={{ delay: 3500, disableOnInteraction: false }}
-    navigation
-    pagination={{ clickable: true }}
-    loop
-    className="rounded-xl shadow-lg"
-  >
-    {staticData.banners.map((banner) => (
-      <SwiperSlide key={banner.id}>
-        <div className="relative w-full h-[400px]">
-          <Image
-            src={`/assets${banner.image}`}
-            alt={banner.title}
-            layout="fill"
-            objectFit="cover"
-            className="rounded-xl"
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white p-6">
-            <h3 className="text-4xl font-bold mb-2">{banner.title}</h3>
-            <p className="text-lg">{banner.description}</p>
-            <Link
-              href="/shop"
-              className="mt-6 inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-blue-700 transition"
-            >
-              Shop Now
-            </Link>
-          </div>
-        </div>
-      </SwiperSlide>
-    ))}
-  </Swiper>
-</div>
-
-
- 
-
-      {/* Shop By Category */}
-      <div className="w-full max-w-5xl mx-auto mt-12">
-        <TagIcon></TagIcon>
-        <h2 className="text-3xl font-semibold text-center mb-8">Categories</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
-          {staticData.categories.map((category) => (
-            <div key={category.id} className="border rounded-lg p-6 shadow-md bg-white text-center">
-              <Image
-                src={`/assets${category.image}`}
+  <div className="max-w-[60%] mx-auto">
+    <Swiper
+      spaceBetween={20} // Space between slides
+      slidesPerView={4} // Show 4 items at a time
+      loop={true} // Enable looping
+      pagination={{ clickable: true }} // Pagination dots
+      navigation={{
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      }} // Custom navigation buttons
+      breakpoints={{
+        320: {
+          slidesPerView: 1, // 1 item for small screens
+        },
+        768: {
+          slidesPerView: 2, // 2 items for medium screens
+        },
+        1024: {
+          slidesPerView: 4, // 4 items for larger screens
+        },
+      }}
+    >
+      {data.slice(0, 8).map((category) => (
+        <SwiperSlide key={category.id}>
+          <div className="rounded-lg shadow-lg p-6 flex flex-col items-center justify-center transition-transform transform hover:scale-105 hover:shadow-xl">
+            <div className="bg-neutral-200 w-36 h-36 flex items-center justify-center rounded-full mb-6 shadow-md">
+              <img
+                src={`${process.env.NEXT_PUBLIC_API_URL}/${category.image}`}
                 alt={category.name}
-                width={250}
-                height={250}
-                objectFit="cover"
-                className="rounded-lg mx-auto"
+                className="w-16 h-16 object-cover rounded-full"
               />
-              <h3 className="mt-4 text-xl font-semibold">{category.name}</h3>
-              <Link
-                href={`/shop/category/${category.id}`}
-                className="mt-2 inline-block text-blue-600 hover:underline"
-              >
-                Browse {category.name}
-              </Link>
             </div>
-          ))}
+            <h3 className="text-lg font-semibold text-gray-800 text-center">{category.name}</h3>
+          </div>
+        </SwiperSlide>
+      ))}
+    </Swiper>
+  </div></>)
+
+}
+const BestSellerSection = ({ data }: { data: any[] }) => {
+  return (
+    <>
+      <div className="flex items-center justify-between mb-8 max-w-[80%] mx-auto mt-10 ">
+        <div className="flex items-center space-x-2">
+          <TagIcon className="w-8 h-8 text-[#C9A25D]" /> {/* Change icon color to #C9A25D */}
+          <h1 className="text-xl font-bold text-gray-800">Best Seller</h1>
         </div>
       </div>
-      </div>
-  
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white text-center py-4 mt-12">
-        <p>© 2025 Leather Luxe. All rights reserved.</p>
-      </footer>
-    </div>
+      <h2 className="text-2xl font-semibold text-gray-900 mb-12 max-w-[80%] mx-auto text-center">
+        Browse Best Seller
+      </h2>
+
+      <div className="max-w-[80%] mx-auto">
+        <Swiper
+          spaceBetween={20} // Space between slides
+          slidesPerView={4} // Show 4 items at a time
+          loop={true} // Enable looping
+          pagination={{ clickable: true }} // Pagination dots
+          navigation={{
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          }} // Custom navigation buttons
+          breakpoints={{
+            320: {
+              slidesPerView: 1, // 1 item for small screens
+            },
+            768: {
+              slidesPerView: 2, // 2 items for medium screens
+            },
+            1024: {
+              slidesPerView: 4, // 4 items for larger screens
+            },
+          }}
+        >
+          {data.slice(0, 8).map((category) => (
+            <SwiperSlide key={category.id}>
+              <div className="rounded-xl shadow-xl p-6 flex flex-col items-center justify-center transition-transform transform hover:scale-105 hover:shadow-2xl bg-gray-800"> {/* Dark background */}
+                <div className="w-40 h-40 flex items-center justify-center  mb-6 shadow-lg">
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/${category.image}`}
+                    alt={category.name}
+                    className="w-40 h-40 object-cover"
+                  />
+                </div>
+                <h3 className="text-lg font-semibold text-white text-center">{category.name}</h3> {/* White text for category name */}
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+    </>
   );
 };
-   
-    //   <div className="w-full max-w-5xl mx-auto mt-12">
-    //     <h2 className="text-3xl font-semibold text-center mb-8">Featured Products</h2>
-    //     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-    //       {staticData.featuredProducts.map((product) => (
-    //         <div key={product.id} className="border rounded-lg p-6 shadow-lg bg-white">
-    //           <Image
-    //             src={`/assets${product.image}`}
-    //             alt={product.title}
-    //             width={350}
-    //             height={350}
-    //             objectFit="cover"
-    //             className="rounded-lg mb-4"
-    //           />
-    //           <h3 className="text-xl font-semibold">{product.title}</h3>
-    //           <p className="text-sm text-gray-500">{product.description}</p>
-    //           <Link
-    //             href={`/product/${product.id}`}
-    //             className="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-blue-700 transition"
-    //           >
-    //             View Details
-    //           </Link>
-    //         </div>
-    //       ))}
-    //     </div>
-    //   </div>
+
+
+
+const FeaturedProductsSection = ({ data }: { data: any[] }) => {
+
+  
+  const shippingBenefits = [
+  {
+    label: "Free Shipping",
+    description: "For all orders $200",
+    image_url: "/assets/Icons/icon-01.svg"
+  },
+  {
+    label: "1 & 1 Returns",
+    description: "Cancellation after 1 day",
+     image_url: "/assets/Icons/icon-02.svg"
+  },
+  {
+    label: "100% Secure Payments",
+    description: "Gurantee secure payments",
+    image_url: "/assets/Icons/icon-03.svg"
+  },
+    {
+    label: "24/7 Dedicated Support",
+    description: "Anywhere & anytime",
+    image_url: "/assets/Icons/icon-04.svg"
+  }
+];
+
+ const newArrivalProducts = [
+  {
+    id: 1,
+    name: "Product 1",
+    discounted_price: "$50.00",
+    current_price: "$100.00",
+    image_url: "/assets/images/Item11.jpg",
+  },
+
+];
+
+const bestSellerProducts = [
+  {
+    id: 3,
+    name: "Product 3",
+    discounted_price: "$70.00",
+    current_price: "$140.00",
+    image_url: "/assets/images/Item7.jpg",
+  },
+];
+
+  const [isLoading, setIsLoading] = useState(true);
+
+
+
+  return (
+    <>
+   <div className="max-w-[60%] mx-auto">
+       <div className="grid grid-cols-3 gap-8 mt-10 ">
+{data[0] && (
+  <motion.div
+    key={data[0].id}
+    className="border rounded-lg p-8 shadow-lg bg-white  transform transition-all hover:scale-105 hover:shadow-2xl col-span-2 h-[530px] flex relative"
+    initial={{ opacity: 0, y: 50 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6 }}
+  >
+
+    {/* Left Section: Product Info and Discount */}
+    <div className="flex flex-col justify-between w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl relative z-10 p-10">
+      {/* Discount and Special Offer Section */}
+      <div className="flex items-center space-x-4 mb-4">
+        <span className="text-6xl font-extrabold text-[#C9A25D]">
+          {parseFloat(data[0].percent).toFixed(0)}%
+        </span>
+        <span className="text-xl font-semibold text-black">
+          Special <br /> Offer
+        </span>
+      </div>
+
+      {/* Product Name */}
+      <h3 className="text-3xl font-semibold text-black hover:text-black transition-colors mb-3">
+        {data[0].name}
+      </h3>
+
+      {/* Product Description */}
+      <p className="text-sm text-black mb-6">{data[0].description}</p>
+
+      {/* View Details Button */}
+      <Link
+        href={`/product/${data[0].id}`}
+        className="inline-block bg-black text-[#C9A25D] px-6 py-3 rounded-lg text-lg font-semibold hover:bg-[#B68A3B] transition-all ease-in-out duration-300 transform hover:scale-105 w-36"
+      >
+       Shop Now
+      </Link>
+    </div>
+
+    {/* Right Section: Product Image */}
+<div className="relative h-full w-full ml-8 overflow-hidden sm:w-[300px] sm:h-[400px] lg:w-[30  0px] lg:h-[350px] flex-shrink-0 my-auto flex items-center justify-center z-10">
+  <div className="absolute inset-0 bg-black opacity-50 rounded-lg"></div> {/* Dark overlay */}
+  <Image
+    src={`http://localhost:8000/${data[0].image_url}`}
+    alt={data[0].name}
+    layout="fill"  // Ensures the image fills the container
+    objectFit="cover"  // Ensures the image covers the container without distortion
+    className="rounded-lg z-10"
+  />
+</div>
+
+  </motion.div>
+)}
+<div className="flex flex-col gap-0">
+<div className="mb-6 relative">
+  {newArrivalProducts.slice(0, 1).map((product, index) => (
+    <motion.div
+      key={product.id}
+      className="border rounded-lg p-3 shadow-lg bg-white transform transition-all hover:scale-105 hover:shadow-2xl h-[255px] overflow-hidden"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: index * 0.3 }}
+    >
+      {/* Title with background at the bottom */}
+<div className="absolute bottom-0 left-0 w-full bg-black text-white text-center py-2 flex justify-center items-center space-x-2">
+  <h2 className="text-lg font-semibold text-white">New Arrivals</h2>
+  <ChevronRightIcon className="w-4 h-4 text-white" />
+</div>
+
+      <div className="flex flex-row justify-between h-full pb-12"> {/* Added padding-bottom to make space for the title */}
+        {/* Left Column: Product Info */}
+        <div className="flex flex-col justify-between w-[calc(100%-150px)] p-5">
+          <h3 className="text-base font-semibold text-gray-800 hover:text-blue-600 transition-colors">
+            {product.name}
+          </h3>
+
+          <div className="mt-2 flex flex-col items-start">
+            <span className="text-xs text-red-600 font-medium mb-1">
+              Limited Time Offer
+            </span>
+            <div className="flex">
+              <span className="text-lg font-semibold text-red-600">
+                {product.discounted_price}
+              </span>
+
+              <span className="text-xs text-gray-500 ml-2 mt-1 pt-1 line-through">
+                {product.current_price}
+              </span>
+            </div>
+          </div>
+
+          <Link
+            href={`/product/${product.id}`}
+            className="inline-block bg-black text-[#C9A25D] px-4 mt-5 py-2 rounded-lg text-md font-semibold hover:bg-[#B68A3B] transition-all ease-in-out duration-300 transform hover:scale-105 w-28"
+          >
+            Shop Now
+          </Link>
+        </div>
+
+        {/* Right Column: Product Image */}
+        <div className="relative w-[150px] mt-5 h-[150px] ml-4 flex justify-center items-center">
+          <Image
+            src={`${product.image_url}`}
+            alt={product.name}
+            width={150}
+            height={150}
+            objectFit="cover"
+            className="rounded-lg z-10 h-full"
+          />
+        </div>
+      </div>
+    </motion.div>
+  ))}
+</div>
+
+  {/* Best Seller Products - Only the first product */}
+<div className="mb-6 relative">
+  {bestSellerProducts.slice(0, 1).map((product, index) => (
+    <motion.div
+      key={product.id}
+      className="border rounded-lg p-3 shadow-lg bg-white transform transition-all hover:scale-105 hover:shadow-2xl h-[250px] overflow-hidden"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: index * 0.3 }}
+    > 
+      {/* Title with background at the bottom */}
+   <div className="absolute bottom-0 left-0 w-full bg-black text-white text-center py-2 flex justify-center items-center space-x-2">
+  <h2 className="text-lg font-semibold text-white">Best Seller</h2>
+  <ChevronRightIcon className="w-4 h-4 text-white" />
+</div>
+
+      <div className="flex flex-row justify-between h-full pb-12"> {/* Added padding-bottom to make space for the title */}
+        {/* Left Column: Product Info */}
+        <div className="flex flex-col justify-between w-[calc(100%-150px)] p-5">
+          <h3 className="text-base font-semibold text-gray-800 hover:text-blue-600 transition-colors">
+            {product.name}
+          </h3>
+
+          <div className="mt-2 flex flex-col items-start">
+            <span className="text-xs text-red-600 font-medium mb-1">
+              Limited Time Offer
+            </span>
+            <div className="flex">
+              <span className="text-lg font-semibold text-red-600">
+                {product.discounted_price}
+              </span>
+
+              <span className="text-xs text-gray-500 ml-2 mt-1 pt-1 line-through">
+                {product.current_price}
+              </span>
+            </div>
+          </div>
+
+          <Link
+            href={`/product/${product.id}`}
+            className="inline-block bg-black mt-5 text-[#C9A25D] px-4 py-2 rounded-lg text-md font-semibold hover:bg-[#B68A3B] transition-all ease-in-out duration-300 transform hover:scale-105 w-28"
+          >
+            Shop Now
+          </Link>
+        </div>
+
+        {/* Right Column: Product Image */}
+        <div className="relative w-[150px] mt-5 h-[150px] ml-4 flex justify-center items-center">
+          <Image
+            src={`${product.image_url}`}
+            alt={product.name}
+            width={150}
+            height={150}
+            objectFit="cover"
+            className="rounded-lg z-10 h-full"
+          />
+        </div>
+      </div>
+    </motion.div>
+  ))}
+  
+</div>
+
+</div>
+
+
+
+
+</div>
+<div className="flex space-x-8 w-full mt-10">
+  {shippingBenefits.map((benefit, index) => (
+    <div key={index} className="flex items-center space-x-4 w-full">
+      {/* First Column: Image */}
+      <div className="w-[50px] h-[50px] flex-shrink-0">
+        <img src={benefit.image_url} alt={benefit.label} className="w-full h-full object-contain" />
+      </div>
+
+      {/* Second Column: Label and Description */}
+      <div className="flex flex-col w-full">
+        {/* Label */}
+        <span className="text-md font-semibold text-black">{benefit.label}</span>
+        {/* Description */}
+        <span className="text-sm text-gray-500">{benefit.description}</span>
+      </div>
+    </div>
+  ))}
+</div>
+</div>
+    </>
+  )
+};
+
+ 
 export default UserHome;
